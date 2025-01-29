@@ -21,7 +21,7 @@ def fetch_crypto_data(symbol_or_symbols, start_date, end_date):
         end=end_date,
     )
 
-    # get data and remove symbol from index, keep timestamp indexing
+    # get data and remove symbol from index
     bars = client.get_crypto_bars(request_params)
     df = bars.df
     df = df.reset_index(level=0, drop=True) # drop symbol column
