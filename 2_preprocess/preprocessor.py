@@ -1,6 +1,6 @@
 import pandas as pd
 
-def preprocess_data(btc_data='btc_data.csv', eth_data='eth_data.csv'):
+def preprocess_data(btc_data='../1_data/btc_data.csv', eth_data='../1_data/eth_data.csv'):
 
     # read in data, parsing timestamps to datetime
     btc_df = pd.read_csv(btc_data, parse_dates=['timestamp'])
