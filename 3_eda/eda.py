@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def load_data(filepath='processed_data.csv'):
+def load_data(filepath='../2_preprocess/processed_data.csv'):
 
     # load data
     df = pd.read_csv(filepath, parse_dates=['timestamp'])
