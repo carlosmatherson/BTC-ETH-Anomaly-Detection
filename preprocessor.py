@@ -41,10 +41,9 @@ def preprocess_data(btc_data='btc_data.csv', eth_data='eth_data.csv'):
         # correlation
         df[f'correlation_{window}D'] = df['btc_returns'].rolling(window).corr(df['eth_returns'])
 
-        features_2_norm.append([f'volatility_ratio_{window}D', f'eth_beta_{window}D', f'correlation_{window}D'])
+        features_2_norm.extend([f'volatility_ratio_{window}D', f'eth_beta_{window}D', f'correlation_{window}D'])
 
     # normalize features
-    features_2_norm = ['eth_beta_60D', 'volatility_ratio_14D', 'return_spread']
     for col in features_2_norm:
         df[f'{col}_norm'] = (df[col] - df[col].min()) / (df[col].max() - df[col].min())
 
