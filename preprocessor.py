@@ -20,17 +20,18 @@ def preprocess_data(btc_data='btc_data.csv', eth_data='eth_data.csv'):
     df['btc_price'] = btc_df['close']
     df['eth_price'] = eth_df['close']
 
+    # calcualte BTC/ETH pair
+    df['price_pair'] = df['btc_price'] / df['eth_price']
+
     # calcualte daily returns using close price
     df['btc_returns'] = df['btc_price'].pct_change()
     df['eth_returns'] = df['eth_price'].pct_change()
 
     # calculate return spread (directional difference in returns)
     df['return_spread'] = df['btc_returns'] - df['eth_returns']
-    
-    # rolling window for-loop for 7, 14, 30, 60, 90 day windows
-    features_2_normalize = []
-    for window in [7,14,30,60,90,120]:
 
+    features_2_norm = ['return_spread']
+    for window in [7,14,30,60,90,120]:
         # calculate volatility ratio (btc std / eth std)
         df[f'volatility_ratio_{window}D'] = df['btc_returns'].rolling(window).std() / df['eth_returns'].rolling(window).std()
 
@@ -40,20 +41,14 @@ def preprocess_data(btc_data='btc_data.csv', eth_data='eth_data.csv'):
         # correlation
         df[f'correlation_{window}D'] = df['btc_returns'].rolling(window).corr(df['eth_returns'])
 
-        features_2_normalize.extend( [f'volatility_ratio_{window}D', f'eth_beta_{window}D', f'correlation_{window}D'])
+        features_2_norm.append([f'volatility_ratio_{window}D', f'eth_beta_{window}D', f'correlation_{window}D'])
 
     # normalize features
-    dff = pd.concat([df, normalize_features(df, features_2_normalize)], axis=1, copy=True)
+    features_2_norm = ['eth_beta_60D', 'volatility_ratio_14D', 'return_spread']
+    for col in features_2_norm:
+        df[f'{col}_norm'] = (df[col] - df[col].min()) / (df[col].max() - df[col].min())
 
     df.dropna(inplace=True)
-
-    return df
-
-def normalize_features(df, feature_columns):
-
-    for col in feature_columns:
-        
-        df[f'{col}_norm'] = (df[col] - df[col].min()) / (df[col].max() - df[col].min())
 
     return df
 
