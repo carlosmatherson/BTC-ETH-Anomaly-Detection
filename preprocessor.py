@@ -21,26 +21,29 @@ def preprocess_data(btc_data='btc_data.csv', eth_data='eth_data.csv'):
     df['eth_price'] = eth_df['close']
 
     # calcualte daily returns using close price
-    df['btc_pct_change'] = df['btc_price'].pct_change()
-    df['eth_pct_change'] = df['eth_price'].pct_change()
+    df['btc_returns'] = df['btc_price'].pct_change()
+    df['eth_returns'] = df['eth_price'].pct_change()
+
+    # calculate return spread (directional difference in returns)
+    df['return_spread'] = df['btc_returns'] - df['eth_returns']
     
-    # calcualte price ratio BTC/ETH
-    df['price_ratio'] = df['btc_price']/df['eth_price']
+    # rolling window for-loop for 7, 14, 30, 60, 90 day windows
+    features_2_normalize = []
+    for window in [7,14,30,60,90,120]:
 
-    # calcaulte 30-day rolling return correlation
-    df['pct_change_corr'] = df['btc_pct_change'].rolling(window=30).corr(df['eth_pct_change'])
+        # calculate volatility ratio (btc std / eth std)
+        df[f'volatility_ratio_{window}D'] = df['btc_returns'].rolling(window).std() / df['eth_returns'].rolling(window).std()
 
-    # calculate price ratio pct_change
-    df['price_ratio_change'] = df['price_ratio'].pct_change()
+        # Ethereum Beta calculate beta ()
+        df[f'eth_beta_{window}D'] = df['eth_returns'].rolling(window).cov(df['btc_returns']) / df['btc_returns'].rolling(window).var()
 
-    # collect feature names in a list
-    features = ['btc_pct_change', 'eth_pct_change', 'price_ratio_change', 'pct_change_corr']
+        # correlation
+        df[f'correlation_{window}D'] = df['btc_returns'].rolling(window).corr(df['eth_returns'])
 
-    # calcualte z-scores for features
-    df = z_score_features(df, features)
+        features_2_normalize.extend( [f'volatility_ratio_{window}D', f'eth_beta_{window}D', f'correlation_{window}D'])
 
     # normalize features
-    df = normalize_features(df, features)
+    dff = pd.concat([df, normalize_features(df, features_2_normalize)], axis=1, copy=True)
 
     df.dropna(inplace=True)
 
@@ -53,14 +56,7 @@ def normalize_features(df, feature_columns):
         df[f'{col}_norm'] = (df[col] - df[col].min()) / (df[col].max() - df[col].min())
 
     return df
-    
-def z_score_features(df, feature_columns):
 
-    for col in feature_columns:
-
-        df[f'{col}_zscore'] = (df[col] - df[col].mean()) / df[col].std()
-
-    return df
 
 def main():
 
