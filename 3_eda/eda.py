@@ -31,7 +31,7 @@ def plot_distributions(df, features, title):
         axes[row, col].set_ylabel('Count')
     
     plt.tight_layout()
-    plt.savefig(f'visualizations/{title}.png')
+    plt.savefig(f'{title}.png')
     plt.show()
 
 def plot_correlation_matrix(df, features, title):
@@ -57,7 +57,7 @@ def plot_correlation_matrix(df, features, title):
     
     plt.title(title)
     plt.tight_layout()
-    plt.savefig(f'visualizations/{title}.png')
+    plt.savefig(f'{title}.png')
     plt.show()
 
 def plot_scatter_matrix(df, features, title):
@@ -82,7 +82,7 @@ def plot_scatter_matrix(df, features, title):
                 axes[i, j].set_ylabel(features[i])
     
     plt.tight_layout()
-    plt.savefig(f'visualizations/{title}.png')
+    plt.savefig(f'{title}.png')
     plt.show()
 
 def compute_kdistance_plot(df, features, k, title):
@@ -96,16 +96,28 @@ def compute_kdistance_plot(df, features, k, title):
     # get k-distances for each point and sort them
     kdistances = distances.apply(lambda x: x.sort_values().iloc[k])
     kdistances_sorted = kdistances.sort_values(ascending=True)
+
+    y_values = list(kdistances_sorted.values)
+    slopes = []
+    for i in range(1,len(y_values)):
+        slopes.append(y_values[i] - y_values[i-1])
+    
+    elbow_idx = slopes.index(max(slopes)) + 1
+    elbow_value = kdistances_sorted.iloc[elbow_idx]
+
     
     # plot k-distance graph
     plt.figure(figsize=(10, 6))
     plt.plot(range(len(kdistances_sorted)), kdistances_sorted.values)
+
+    # add elbow point
+    plt.scatter(elbow_idx, elbow_value, color='r', s=120, label=f'Estimated elbow: {elbow_value:.3f}')
+
     
     # add mean and percentile lines
-    plt.axhline(y=kdistances_sorted.mean(), color='r', linestyle='--', 
-                label=f'Mean {k}-distance')
+    plt.axhline(y=kdistances_sorted.mean(), color='r', linestyle='--', label=f'Mean {k}-distance')
     
-    for p, c in zip([25, 50, 75], ['g', 'y', 'orange']):
+    for p, c in zip([25, 50, 75, 90], ['g', 'y', 'orange', 'blue']):
         eps = kdistances_sorted.quantile(p/100)
         plt.axhline(y=eps, color=c, linestyle=':', 
                    label=f'{p}th percentile')
@@ -115,7 +127,7 @@ def compute_kdistance_plot(df, features, k, title):
     plt.ylabel(f'{k}-Distance')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'visualizations/{k}{title}.png')
+    plt.savefig(f'{k}{title}.png')
     plt.show()
 
     
@@ -123,15 +135,18 @@ def compute_kdistance_plot(df, features, k, title):
     print("\nPotential eps values at different percentiles:")
     for p in [10, 25, 50, 75, 90]:
         print(f"{p}th percentile: {kdistances_sorted.quantile(p/100):.3f}")
+    
+    # print elbow
+    print(f'Estimated elbow: {elbow_value:.3f}')
 
 def main():
     # Load data
     df, normalized_features, chosen_features = load_data()
 
     # Feature search
-    # plot_distributions(df, normalized_features, title='All Normalized Features Distributions')
-    # plot_correlation_matrix(df, normalized_features, title='All Normalized Feature Correlations')
-    # plot_scatter_matrix(df, normalized_features, title='All Normalized Features Scatter Matrix')
+    plot_distributions(df, normalized_features, title='All Normalized Features Distributions')
+    plot_correlation_matrix(df, normalized_features, title='All Normalized Feature Correlations')
+    plot_scatter_matrix(df, normalized_features, title='All Normalized Features Scatter Matrix')
 
     
     # Plot distributions
