@@ -33,7 +33,8 @@ def main():
     
     # configure date time format for start/end dates
     utc = pytz.UTC
-    end_date = datetime.now(utc)
+    #end_date = datetime.now(utc)
+    end_date = datetime(2025, 1, 1, tzinfo=utc)
     start_date = datetime(2021, 1, 1, tzinfo=utc)
 
     # fetch and save btc OHLCV data
